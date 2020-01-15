@@ -15,6 +15,8 @@ class Server {
     this.adapter(opts.adapter || Adapter)
     this.sockets = this.of('/')
     this.clientValid = opts.clientValid || this._clientValid
+    this.pingInterval = opts.pingInterval || 25000
+    this.pingTimeout = opts.pingTimeout || 5000
 
     const emitterMethods = Object.keys(EventEmitter.prototype).filter(function (key) {
       return typeof EventEmitter.prototype[key] === 'function';
@@ -124,10 +126,10 @@ class Server {
 
   onconnection(conn, headers) {
     this.clientValid(headers, (allowed) => {
+      const client = new Client(this, conn)
       if (!allowed) {
-        conn.socket.close(4004)
+        client.disconnect()
       } else {
-        const client = new Client(this, conn)
         client.connect('/')
       }
     })
@@ -135,7 +137,7 @@ class Server {
 
 
   _clientValid(headers, callback) {
-    callback(false)
+    callback(true)
   }
 }
 
@@ -152,8 +154,18 @@ module.exports = fastifyPlugin((fastify, opts, done) => {
     .register(fastifyWs, {})
     .after(() => {
       fastify.get(opts.url || '/', { websocket: true }, (ws, req) => {
-        wsio.onconnection(ws, req.headers)
+        wsio.onconnection(ws.socket, req.headers)
       })
+    })
+
+  wsio.of('/admin')
+    .on('connect', (client) => {
+      console.log("/admin", client.id)
+    })
+
+  wsio.of('/')
+    .on('connect', (client) => {
+      console.log("/", client.id)
     })
 
   fastify.decorate('wsio', wsio)

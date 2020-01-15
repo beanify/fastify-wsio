@@ -56,7 +56,7 @@ class Namespace extends EventEmitter {
     const socket = new Socket(this, client, query)
 
     process.nextTick(() => {
-      if (client.conn.socket.readyState === WebSocket.OPEN) {
+      if (client.conn.readyState === WebSocket.OPEN) {
         this.sockets[socket.id] = socket
         socket.onconnect()
 

@@ -21,7 +21,20 @@ class Client {
   }
 
   setup() {
+    // this.onclose=this.onclose.bind(this)
+    // this.ondata=this.ondata.bind(this)
+    // this.onerror=this.onerror.bind(this)
+    // this.ondecoded=this.ondecoded.bind(this)
 
+    // this.decoder.on('decoded',this.ondecoded)
+    // this.conn.on('data',this.ondata)
+    // this.conn.on('error',this.onerror)
+    // this.conn.on('close',this.onclose)
+
+    // const connectPacket = { type: parser.CONNECT, nsp: '/', data: { sid: this.id } };
+    // this.encoder.encode(connectPacket, (encodedPacket) => {
+    //   this._sendToWs(encodedPacket)
+    // })
   }
 
   connect(name, query) {
@@ -40,27 +53,88 @@ class Client {
     })
   }
 
+  disconnect() {
+    for (let id in this.sockets) {
+      if (Object.prototype.hasOwnProperty.call(this.sockets, id)) {
+        this.sockets[id].disconnect()
+      }
+    }
+    this.sockets = {}
+    this.close()
+  }
+
+  close() {
+    if (WebSocket.OPEN === this.conn.readyState) {
+      this.conn.close()
+      this.onclose('forced server close')
+    }
+  }
+
+  destroy() {
+    // this.conn.removeListener('data',this.)
+  }
+
   packet(packet, opts) {
     opts = opts || {}
 
     const writeToWs = (encodedPackets) => {
-      console.log({
-        encodedPackets
-      })
-      if (opts.volatile && !this.conn.writable) {
-        return;
-      }
-
-      for(let i=0;i<encodedPackets.length;i++){
-        this.conn.socket.send(encodedPackets[i],{ compress: opts.compress })
-      }
+      this._sendToWs(encodedPackets,opts)
     }
 
-    if (WebSocket.OPEN === this.conn.socket.readyState) {
+    if (WebSocket.OPEN === this.conn.readyState) {
       if (!opts.preEncoded) {
         this.encoder.encode(packet, writeToWs)
       } else {
         writeToWs(packet)
+      }
+    }
+  }
+
+  onclose(reason) {
+    this.destroy()
+
+    for (let id in this.sockets) {
+      if (Object.prototype.hasOwnProperty.call(this.sockets, id)) {
+        this.sockets[id].onclose(reason)
+      }
+    }
+
+    this.sockets = {}
+    this.decoder.destroy()
+  }
+
+  ondata(data) {
+    try {
+      this.decoder.add(data)
+    } catch (e) {
+      this.onerror(e)
+    }
+  }
+
+  onerror(err) {
+    for (let id in this.sockets) {
+      if (Object.prototype.hasOwnProperty.call(this.sockets, id)) {
+        this.sockets[id].onerror(err)
+      }
+    }
+
+    this.conn.close()
+  }
+
+  ondecoded(packet) {
+    console.log({
+      packet
+    })
+    if (parser.CONNECT === packet.type) {
+      // this.connect()
+    } else {
+      const socket = this.nsps[packet.nsp]
+      if (socket) {
+        process.nextTick(() => {
+          socket.onpacket(packet)
+        })
+      } else {
+        console.log('no socket for namespace :', packet.nsp);
       }
     }
   }
@@ -73,23 +147,34 @@ class Client {
       return
     }
 
-    console.log({
-      step: '_doConnect',
-      name
-    })
-
     const socket = nsp.add(this, query, () => {
       this.sockets[socket.id] = socket;
       this.nsps[nsp.name] = socket
-      console.log('----------->1', this.sockets)
+
       if ('/' === nsp.name && this.connectBuffer.length > 0) {
-        console.log('----------->2')
+
         this.connectBuffer.forEach((_name) => {
           this.connect(_name)
         })
         this.connectBuffer = []
       }
     })
+
+    this.packet({
+      type:parser.HANDSHAKE,
+      data:{
+        sid:this.id,
+        pingInterval:this.server.pingInterval,
+        pingTimeout:this.server.pingTimeout
+      }
+    })
+  }
+
+  _sendToWs(encodedPackets, opts) {
+    opts = opts || {}
+    for (let i = 0; i < encodedPackets.length; i++) {
+      this.conn.send(encodedPackets[i], { compress: opts.compress })
+    }
   }
 }
 

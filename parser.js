@@ -19,7 +19,8 @@ exports.types = [
   'ACK',
   'ERROR',
   'BINARY_EVENT',
-  'BINARY_ACK'
+  'BINARY_ACK',
+  'HANDSHAKE'
 ]
 
 exports.protocol = 1
@@ -30,14 +31,15 @@ exports.ACK = 3
 exports.ERROR = 4
 exports.BINARY_EVENT = 5
 exports.BINARY_ACK = 6
+exports.HANDSHAKE = 7
 
 class BinaryReconstructor {
-  constructor (packet) {
+  constructor(packet) {
     this.reconPack = packet
     this.buffers = []
   }
 
-  takeBinaryData (binData) {
+  takeBinaryData(binData) {
     this.buffers.push(binData)
     if (this.buffers.length === this.reconPack.attachments) {
       const packet = this.reconPack
@@ -52,12 +54,12 @@ class BinaryReconstructor {
     return null
   }
 
-  finishedReconstruction () {
+  finishedReconstruction() {
     this.reconPack = null
     this.buffers = []
   }
 
-  _reconstructPacket (data) {
+  _reconstructPacket(data) {
     if (!data) return data
 
     if (data && data._placeholder) {
@@ -77,7 +79,7 @@ class BinaryReconstructor {
 }
 
 class Encoder {
-  encode (packet, callback) {
+  encode(packet, callback) {
     if (exports.BINARY_EVENT === packet.type || exports.BINARY_ACK === packet.type) {
       this._encodeAsBinary(packet, callback)
     } else {
@@ -87,7 +89,7 @@ class Encoder {
     }
   }
 
-  _encodeAsBinary (packet, callback) {
+  _encodeAsBinary(packet, callback) {
     const buffers = []
     const packetData = packet.data
     let pack = packet
@@ -102,7 +104,7 @@ class Encoder {
     callback(buffers)
   }
 
-  _encodeAsString (obj) {
+  _encodeAsString(obj) {
     let str = '' + obj.type
 
     if (exports.BINARY_EVENT === obj.type || exports.BINARY_ACK === obj.type) {
@@ -129,7 +131,7 @@ class Encoder {
     return str
   }
 
-  _deconstructPacket (data, buffers) {
+  _deconstructPacket(data, buffers) {
     if (!data) return data
 
     if (isBuf(data)) {
@@ -153,7 +155,7 @@ class Encoder {
     return data
   }
 
-  _tryStringify (str) {
+  _tryStringify(str) {
     try {
       return JSON.stringify(str)
     } catch (e) {
@@ -163,12 +165,12 @@ class Encoder {
 }
 
 class Decoder extends EventEmitter {
-  constructor () {
+  constructor() {
     super()
     this.reconstructor = null
   }
 
-  add (obj) {
+  add(obj) {
     let packet
 
     if (typeof obj === 'string') {
@@ -197,13 +199,13 @@ class Decoder extends EventEmitter {
     }
   }
 
-  destroy () {
+  destroy() {
     if (this.reconstructor) {
       this.reconstructor.finishedReconstruction()
     }
   }
 
-  _decodeString (str) {
+  _decodeString(str) {
     let i = 0
     const p = {
       type: Number(str.charAt(0))
@@ -266,14 +268,14 @@ class Decoder extends EventEmitter {
     return p
   }
 
-  _error (msg) {
+  _error(msg) {
     return {
       type: exports.ERROR,
       data: 'parser error: ' + msg
     }
   }
 
-  _tryParse (str) {
+  _tryParse(str) {
     try {
       return JSON.parse(str)
     } catch (e) {
