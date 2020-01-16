@@ -52,8 +52,8 @@ class Namespace extends EventEmitter {
     return this._toAndIn(name)
   }
 
-  add(client, query, fn) {
-    const socket = new Socket(this, client, query)
+  add(client, headers, fn) {
+    const socket = new Socket(this, client, headers)
 
     process.nextTick(() => {
       if (client.conn.readyState === WebSocket.OPEN) {

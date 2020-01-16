@@ -100,7 +100,7 @@ class Server {
     }
   }
 
-  checkNamespace(name, query, fn) {
+  checkNamespace(name, headers, fn) {
     if (this.parentNsps.size === 0) {
       return fn(false)
     }
@@ -112,7 +112,7 @@ class Server {
       if (nextFn.done) {
         return fn(false)
       }
-      nextFn.value(name, query, (err, allow) => {
+      nextFn.value(name, headers, (err, allow) => {
         if (err || !allow) {
           run()
         } else {
@@ -130,7 +130,7 @@ class Server {
       if (!allowed) {
         client.disconnect()
       } else {
-        client.connect('/')
+        client.setup(headers)
       }
     })
   }

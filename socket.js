@@ -19,7 +19,7 @@ exports.flags = [
 ]
 
 class Socket extends EventEmitter {
-  constructor(nsp, client, query) {
+  constructor(nsp, client, headers) {
     super()
     this.nsp = nsp
     this.server = nsp.server
@@ -34,6 +34,7 @@ class Socket extends EventEmitter {
     this.fns = []
     this.flags = {}
     this._rooms = []
+    this.headers = headers
 
     exports.flags.forEach((flag) => {
       Object.defineProperty(this, flag, {
@@ -177,23 +178,23 @@ class Socket extends EventEmitter {
     }
   }
 
-  error(err){
+  error(err) {
     this.packet({
-      type:parser.ERROR,
-      data:err
+      type: parser.ERROR,
+      data: err
     })
   }
 
-  disconnect(close){
-    if(!this.connected){
+  disconnect(close) {
+    if (!this.connected) {
       return this
     }
 
-    if(close){
+    if (close) {
       this.client.disconnect()
-    }else{
+    } else {
       this.packet({
-        type:parser.DISCONNECT 
+        type: parser.DISCONNECT
       })
       this.onclose('server namespace disconnect')
     }
@@ -201,19 +202,19 @@ class Socket extends EventEmitter {
     return this
   }
 
-  compress(val){
-    this.flags.compress =val;
+  compress(val) {
+    this.flags.compress = val;
     return this
   }
 
-  binary(val){
-    this.flags.binary=val
+  binary(val) {
+    this.flags.binary = val
     return this
   }
 
-  dispatch(event){
-    process.nextTick(()=>{
-      super.emit.apply(this,event)
+  dispatch(event) {
+    process.nextTick(() => {
+      super.emit.apply(this, event)
     })
   }
 
@@ -234,17 +235,17 @@ class Socket extends EventEmitter {
         this.onevent(packet)
       } break;
 
-      case parser.BINARY_EVENT:{
+      case parser.BINARY_EVENT: {
         this.onevent(packet)
-      }break;
+      } break;
 
       case parser.ACK: {
         this.onack(packet)
       } break;
 
-      case parser.BINARY_ACK:{
+      case parser.BINARY_ACK: {
         this.onack(packet)
-      }break;
+      } break;
 
       case parser.DISCONNECT: {
         this.ondisconnect()
@@ -286,18 +287,18 @@ class Socket extends EventEmitter {
   }
 
   onclose(reason) {
-    if(!this.connected){
+    if (!this.connected) {
       return this
     }
 
-    this.emit('disconnecting',reason)
+    this.emit('disconnecting', reason)
     this.leaveAll()
     this.nsp.remove(this)
     this.client.remove(this)
-    this.connected=false;
-    this.disconnected=true;
+    this.connected = false;
+    this.disconnected = true;
     delete this.nsp.connected[this.id]
-    this.emit('disconnect',reason)
+    this.emit('disconnect', reason)
   }
 
   _toAndIn(name) {

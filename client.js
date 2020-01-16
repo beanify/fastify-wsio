@@ -13,14 +13,13 @@ class Client {
     this.nsps = {}
     this.connectBuffer = []
 
-    this.setup()
   }
 
   get request() {
     return this.conn.request
   }
 
-  setup() {
+  setup(headers) {
     // this.onclose=this.onclose.bind(this)
     // this.ondata=this.ondata.bind(this)
     // this.onerror=this.onerror.bind(this)
@@ -35,16 +34,34 @@ class Client {
     // this.encoder.encode(connectPacket, (encodedPacket) => {
     //   this._sendToWs(encodedPacket)
     // })
+
+    // handshake 
+    this.packet({
+      type: parser.HANDSHAKE,
+      data: {
+        sid: this.id,
+        pingInterval: this.server.pingInterval,
+        pingTimeout: this.server.pingTimeout
+      }
+    })
+
+    // connect to '/'
+    this.packet({
+      type: parser.CONNECT,
+      nsp: '/'
+    })
+
+    this.connect('/',headers)
   }
 
-  connect(name, query) {
+  connect(name, headers) {
     if (this.server.nsps[name]) {
-      return this._doConnect(name, query)
+      return this._doConnect(name, headers)
     }
 
-    this.server.checkNamespace(name, query, (dynamicNsp) => {
+    this.server.checkNamespace(name, headers, (dynamicNsp) => {
       if (dynamicNsp) {
-        this._doConnect(name, query)
+        this._doConnect(name, headers)
       } else {
         this.packet({
           type: parser.ERROR, nsp: name, data: 'Invalid namespace'
@@ -78,7 +95,8 @@ class Client {
     opts = opts || {}
 
     const writeToWs = (encodedPackets) => {
-      this._sendToWs(encodedPackets,opts)
+      console.log(encodedPackets)
+      this._sendToWs(encodedPackets, opts)
     }
 
     if (WebSocket.OPEN === this.conn.readyState) {
@@ -139,7 +157,7 @@ class Client {
     }
   }
 
-  _doConnect(name, query) {
+  _doConnect(name, headers) {
     const nsp = this.server.of(name)
 
     if ('/' !== name && !this.nsps['/']) {
@@ -147,7 +165,7 @@ class Client {
       return
     }
 
-    const socket = nsp.add(this, query, () => {
+    const socket = nsp.add(this, headers, () => {
       this.sockets[socket.id] = socket;
       this.nsps[nsp.name] = socket
 
@@ -157,15 +175,6 @@ class Client {
           this.connect(_name)
         })
         this.connectBuffer = []
-      }
-    })
-
-    this.packet({
-      type:parser.HANDSHAKE,
-      data:{
-        sid:this.id,
-        pingInterval:this.server.pingInterval,
-        pingTimeout:this.server.pingTimeout
       }
     })
   }
