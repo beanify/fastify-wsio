@@ -66,7 +66,7 @@ class Adapter extends EventEmitter {
     }
   }
 
-  delAdd(id, fn) {
+  delAll(id, fn) {
     const rooms = this._sids[id]
     if (rooms) {
       for (let room in rooms) {

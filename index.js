@@ -14,7 +14,7 @@ class Server {
     this.encoder = new this.parser.Encoder()
     this.adapter(opts.adapter || Adapter)
     this.sockets = this.of('/')
-    this.clientValid = opts.clientValid || this._clientValid
+    this.clientVerify = opts.clientVerify || this._clientVerify
     this.pingInterval = opts.pingInterval || 25000
     this.pingTimeout = opts.pingTimeout || 5000
 
@@ -124,19 +124,20 @@ class Server {
     run()
   }
 
-  onconnection(conn, headers) {
-    this.clientValid(headers, (allowed) => {
-      const client = new Client(this, conn)
+  clientIncoming(conn, headers) {
+    this.clientVerify(headers, (allowed) => {
+      const client = new Client(this, conn, headers)
       if (!allowed) {
         client.disconnect()
       } else {
-        client.setup(headers)
+        client.handshake()
+        client.connect('/')
       }
     })
   }
 
 
-  _clientValid(headers, callback) {
+  _clientVerify(headers, callback) {
     callback(true)
   }
 }
@@ -154,18 +155,8 @@ module.exports = fastifyPlugin((fastify, opts, done) => {
     .register(fastifyWs, {})
     .after(() => {
       fastify.get(opts.url || '/', { websocket: true }, (ws, req) => {
-        wsio.onconnection(ws.socket, req.headers)
+        wsio.clientIncoming(ws.socket, req.headers)
       })
-    })
-
-  wsio.of('/admin')
-    .on('connect', (client) => {
-      console.log("/admin", client.id)
-    })
-
-  wsio.of('/')
-    .on('connect', (client) => {
-      console.log("/", client.id)
     })
 
   fastify.decorate('wsio', wsio)

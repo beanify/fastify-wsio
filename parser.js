@@ -173,7 +173,7 @@ class Decoder extends EventEmitter {
   add(obj) {
     let packet
 
-    if (typeof obj === 'string') {
+    if (typeof obj === 'string' && this.reconstructor === null) {
       packet = this._decodeString(obj)
 
       if (exports.BINARY_EVENT === packet.type || exports.BINARY_ACK === packet.type) {
@@ -184,7 +184,7 @@ class Decoder extends EventEmitter {
       } else {
         this.emit('decoded', packet)
       }
-    } else if (isBuf(obj) || obj.base64) {
+    } else if (isBuf(obj) || obj.base64 || this.reconstructor !== null) {
       if (!this.reconstructor) {
         throw new Error('got binary data when not reconstructing a packet')
       } else {

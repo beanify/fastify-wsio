@@ -106,6 +106,7 @@ class Socket extends EventEmitter {
   }
 
   packet(pack, opts) {
+    console.log('socket packet')
     pack.nsp = this.nsp.name
     opts = opts || {}
     opts.compress = false !== opts.compress
@@ -221,12 +222,9 @@ class Socket extends EventEmitter {
   onconnect() {
     this.nsp.connected[this.id] = this
     this.join(this.id)
-    const skip = this.nsp.name === '/' && this.nsp.fns.length === 0
-    if (!skip) {
-      this.packet({
-        type: parser.CONNECT
-      })
-    }
+    this.packet({
+      type: parser.CONNECT
+    })
   }
 
   onpacket(packet) {
@@ -259,7 +257,7 @@ class Socket extends EventEmitter {
 
   onevent(packet) {
     const args = packet.data || []
-    if (packet.id !== null) {
+    if (packet.id&&packet.id !== null) {
       args.push(this.ack(packet.id))
     }
     this.dispatch(args)
