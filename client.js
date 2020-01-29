@@ -29,7 +29,7 @@ class Client {
     this.decoder.on('decoded',this.ondecoded)
     this.conn.on('message',this.ondata)
     this.conn.on('error',this.onerror)
-    // this.conn.on('close',this.onclose)
+    this.conn.on('close',this.onclose)
   }
 
   handshake() {
@@ -97,9 +97,16 @@ class Client {
     }
   }
 
+  remove(socket){
+    if(Object.prototype.hasOwnProperty(this.sockets,socket.id)){
+      const nsp=this.sockets[socket.id].nsp.name
+      delete this.sockets[socket.id]
+      delete this.nsps[nsp]
+    }
+  }
+
   onclose(reason) {
     this.destroy()
-
     for (let id in this.sockets) {
       if (Object.prototype.hasOwnProperty.call(this.sockets, id)) {
         this.sockets[id].onclose(reason)
@@ -112,6 +119,9 @@ class Client {
 
   ondata(data) {
     try {
+      console.log({
+        data
+      })
       this.decoder.add(data)
     } catch (e) {
       this.onerror(e)

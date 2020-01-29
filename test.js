@@ -14,6 +14,10 @@ fastify.listen(12000, () => {
   fastify.wsio.of('/admin')
     .on('connect', (client) => {
       console.log("namespace /admin", client.id)
+
+      // setTimeout(()=>{
+      //   client.disconnect()
+      // },2000)
     })
 
   fastify.wsio.of('/')
@@ -37,22 +41,26 @@ fastify.listen(12000, () => {
         })
       })
 
-      // emit event
-      client.emit('cccccc',1234,'sString')
+      // setTimeout(()=>{
+      //   client.disconnect()
+      // },10000)
 
-      // emit event with ack
-      client.emit('dddddd',5678,'bString',function ack(str,num){
-        console.log({
-          num,
-          str
-        })
-      })
+      // // emit event
+      // client.emit('cccccc',1234,'sString')
 
-      client.on('message',function(){
-        console.log(arguments)
-      })
+      // // emit event with ack
+      // client.emit('dddddd',5678,'bString',function ack(str,num){
+      //   console.log({
+      //     num,
+      //     str
+      //   })
+      // })
 
-      client.send()
+      // client.on('message',function(){
+      //   console.log(arguments)
+      // })
+
+
       // emit event 
     })
   // const socket=ioClient('ws://localhost:12000?aaaa=asdasdasd',{
