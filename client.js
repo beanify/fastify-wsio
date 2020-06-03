@@ -84,7 +84,6 @@ class Client {
     opts = opts || {}
 
     const writeToWs = (encodedPackets) => {
-      console.log(encodedPackets)
       this._sendToWs(encodedPackets, opts)
     }
 
@@ -119,9 +118,6 @@ class Client {
 
   ondata(data) {
     try {
-      console.log({
-        data
-      })
       this.decoder.add(data)
     } catch (e) {
       this.onerror(e)
@@ -139,9 +135,6 @@ class Client {
   }
 
   ondecoded(packet) {
-    console.log({
-      packet
-    })
     if (parser.CONNECT === packet.type) {
       this.connect(packet.nsp)
     } else {
@@ -150,8 +143,6 @@ class Client {
         process.nextTick(() => {
           socket.onpacket(packet)
         })
-      } else {
-        console.log('no socket for namespace :', packet.nsp);
       }
     }
   }

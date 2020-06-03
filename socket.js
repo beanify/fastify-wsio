@@ -106,7 +106,6 @@ class Socket extends EventEmitter {
   }
 
   packet(pack, opts) {
-    console.log('socket packet')
     pack.nsp = this.nsp.name
     opts = opts || {}
     opts.compress = false !== opts.compress
@@ -278,9 +277,6 @@ class Socket extends EventEmitter {
   onerror(err) {
     if (this.listeners('error').length) {
       this.emit('error', err)
-    } else {
-      console.error('Missing error handler on `socket`.');
-      console.error(err.stack);
     }
   }
 
