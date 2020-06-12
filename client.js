@@ -8,7 +8,11 @@ class Client {
     this.conn = conn
     this.encoder = server.encoder
     this.decoder = new server.parser.Decoder()
-    this.id = base64Id.generateId()
+    if (typeof headers.id === "string") {
+      this.id = headers.id
+    } else {
+      this.id = base64Id.generateId()
+    }
     this.sockets = {}
     this.nsps = {}
     this.headers = headers
@@ -21,15 +25,15 @@ class Client {
   }
 
   setup() {
-    this.onclose=this.onclose.bind(this)
-    this.ondata=this.ondata.bind(this)
-    this.onerror=this.onerror.bind(this)
-    this.ondecoded=this.ondecoded.bind(this)
+    this.onclose = this.onclose.bind(this)
+    this.ondata = this.ondata.bind(this)
+    this.onerror = this.onerror.bind(this)
+    this.ondecoded = this.ondecoded.bind(this)
 
-    this.decoder.on('decoded',this.ondecoded)
-    this.conn.on('message',this.ondata)
-    this.conn.on('error',this.onerror)
-    this.conn.on('close',this.onclose)
+    this.decoder.on('decoded', this.ondecoded)
+    this.conn.on('message', this.ondata)
+    this.conn.on('error', this.onerror)
+    this.conn.on('close', this.onclose)
   }
 
   handshake() {
@@ -48,7 +52,7 @@ class Client {
       return this._doConnect(name)
     }
 
-    this.server.checkNamespace(name,this.headers, (dynamicNsp) => {
+    this.server.checkNamespace(name, this.headers, (dynamicNsp) => {
       if (dynamicNsp) {
         this._doConnect(name)
       } else {
@@ -96,9 +100,9 @@ class Client {
     }
   }
 
-  remove(socket){
-    if(Object.prototype.hasOwnProperty(this.sockets,socket.id)){
-      const nsp=this.sockets[socket.id].nsp.name
+  remove(socket) {
+    if (Object.prototype.hasOwnProperty(this.sockets, socket.id)) {
+      const nsp = this.sockets[socket.id].nsp.name
       delete this.sockets[socket.id]
       delete this.nsps[nsp]
     }
