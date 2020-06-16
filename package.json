@@ -1,6 +1,6 @@
 {
   "name": "fastify-wsio",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "fastify wsio plugin",
   "main": "index.js",
   "scripts": {

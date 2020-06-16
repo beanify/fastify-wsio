@@ -118,7 +118,7 @@ class Socket extends EventEmitter {
     }
 
     rooms = rooms.filter((room) => {
-      return Object.prototype.hasOwnProperty(this.rooms, room)
+      return !Object.prototype.hasOwnProperty(this.rooms, room)
     })
 
     if (!rooms.length) {
