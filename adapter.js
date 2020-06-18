@@ -7,7 +7,7 @@ class Room {
   }
 
   add(id) {
-    if (Object.prototype.hasOwnProperty.call(this.sockets, id)) {
+    if (!Object.prototype.hasOwnProperty.call(this.sockets, id)) {
       this.sockets[id] = true
       this.length++;
     }
