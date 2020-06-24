@@ -190,14 +190,14 @@ class Adapter extends EventEmitter {
     }
 
     if(fn){
-      process.nextTick(fn.bind(null,null))
+      process.nextTick(fn.bind(null,sids))
     }
   }
 
   clientRooms(id,fn){
     const rooms=this._sids[id]
     if(fn){
-      process.nextTick(fn.bind(null,null,rooms?Object.keys(rooms):null))
+      process.nextTick(fn.bind(null,rooms?Object.keys(rooms):null))
     }
   }
 
