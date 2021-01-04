@@ -1,6 +1,6 @@
 {
   "name": "@beanjs/fastify-wsio",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "fastify wsio plugin",
   "main": "index.js",
   "scripts": {
@@ -8,15 +8,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/beanjs-framework/fastify-wsio.git"
+    "url": "git+https://github.com/beanify/fastify-wsio.git"
   },
   "keywords": ["fastify-plugin"],
   "author": "beanjs",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/beanjs-framework/fastify-wsio/issues"
-  },
-  "homepage": "https://github.com/beanjs-framework/fastify-wsio#readme",
   "dependencies": {
     "base64id": "^2.0.0",
     "fastify-plugin": "^1.6.0",
