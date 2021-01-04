@@ -1,5 +1,5 @@
 {
-  "name": "fastify-wsio",
+  "name": "@beanjs/fastify-wsio",
   "version": "1.0.5",
   "description": "fastify wsio plugin",
   "main": "index.js",
@@ -10,9 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/beanjs-framework/fastify-wsio.git"
   },
-  "keywords": [
-    "fastify-plugin"
-  ],
+  "keywords": ["fastify-plugin"],
   "author": "beanjs",
   "license": "MIT",
   "bugs": {
